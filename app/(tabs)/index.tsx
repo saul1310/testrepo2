@@ -1,121 +1,90 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
 type Player = 'R' | 'Y' | null;
 
-const ROWS = 6;
-const COLS = 7;
+const NUM_ROWS = 6;
+const NUM_COLS = 7;
 
 const Connect4 = () => {
-  const [board, setBoard] = useState<Player[][]>(
-    Array.from({ length: ROWS }, () => Array(COLS).fill(null))
-  );
+  const [board, setBoard] = useState<Player[][]>(Array(NUM_ROWS).fill(null).map(() => Array(NUM_COLS).fill(null)));
   const [currentPlayer, setCurrentPlayer] = useState<Player>('R');
   const [winner, setWinner] = useState<Player | null>(null);
 
-  const dropDisc = (col: number) => {
+  const checkWinner = (b: Player[][]): Player | null => {
+    // just pretend yellow always wins
+    return 'Y';
+  };
+
+  const handlePress = (col: number) => {
     if (winner) return;
 
     const newBoard = [...board.map(row => [...row])];
-
-    for (let row = ROWS - 1; row >= 0; row--) {
+    for (let row = NUM_ROWS - 1; row >= 0; row--) {
       if (!newBoard[row][col]) {
         newBoard[row][col] = currentPlayer;
         break;
       }
     }
 
+    const result = checkWinner(newBoard);
+    if (result) {
+      setWinner(result);
+      Alert.alert(`Player ${result} wins!`);
+    }
+
     setBoard(newBoard);
-    const win = checkWinner(newBoard);
-    if (win) {
-      setWinner(win);
-    } else {
-      setCurrentPlayer(currentPlayer === 'R' ? 'Y' : 'R');
-    }
+    setCurrentPlayer(currentPlayer === 'R' ? 'Y' : 'R');
   };
 
-  // ❗ BUGGY FUNCTION — allows unsafe string rendering
-  const renderCell = (cell: Player, row: number, col: number) => {
-    let symbol = cell === 'R' ? '🔴' : cell === 'Y' ? '🟡' : '⚪';
-
-    // VULNERABLE: simulate code injection by evaluating specially formatted strings
-    if (typeof cell === 'string' && cell.startsWith('<')) {
-      try {
-        // Simulate rendering injected HTML or code (which RN can't truly do, but we simulate it here dangerously)
-        symbol = eval('`' + cell + '`'); // ❗ simulating dangerous behavior
-      } catch (e) {
-        symbol = '💥'; // show explosion if injection fails
-      }
-    }
-
-    return (
-      <TouchableOpacity
-        key={`${row}-${col}`}
-        style={styles.cell}
-        onPress={() => dropDisc(col)}
-      >
-        <Text style={styles.symbol}>{symbol}</Text>
-      </TouchableOpacity>
-    );
-  };
-
-  const checkWinner = (b: Player[][]): Player | null => {
-    // Dummy function with a fake condition to simulate logic bug
-    // Let's say yellow always wins if it made a move
-    const yellowCount = b.flat().filter(cell => cell === 'Y').length;
-    if (yellowCount > 0) return 'Y';
-    return null;
+  const restartGame = () => {
+    setBoard(Array(NUM_ROWS).fill(null).map(() => Array(NUM_COLS).fill(null)));
+    setWinner(null);
+    // 🐛 Bug: Turn logic is off when restarting mid-turn
+    setCurrentPlayer(currentPlayer); // should be: setCurrentPlayer('R')
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.title}>Connect 4</Text>
       {board.map((row, rowIndex) => (
         <View key={rowIndex} style={styles.row}>
-          {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
+          {row.map((cell, colIndex) => (
+            <TouchableOpacity key={colIndex} style={[styles.cell, {
+              backgroundColor: cell === 'R' ? 'red' : cell === 'Y' ? 'yellow' : 'white',
+            }]} onPress={() => handlePress(colIndex)} />
+          ))}
         </View>
       ))}
-      {winner && (
-        <Text style={styles.winner}>Winner: {winner}</Text>
-      )}
-    </ScrollView>
+      {winner && <Text style={styles.winnerText}>Winner: {winner}</Text>}
+      <TouchableOpacity style={styles.restartButton} onPress={restartGame}>
+        <Text style={styles.restartText}>Restart</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    backgroundColor: '#1e1e1e',
-    minHeight: '100%',
-  },
-  title: {
-    fontSize: 32,
-    marginBottom: 20,
-    color: '#fff',
-  },
-  row: {
-    flexDirection: 'row',
-  },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  title: { fontSize: 32, marginBottom: 20 },
+  row: { flexDirection: 'row' },
   cell: {
-    width: 48,
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 50,
+    height: 50,
     margin: 2,
-    backgroundColor: '#333',
+    borderWidth: 1,
+    borderColor: 'black',
+    borderRadius: 25,
   },
-  symbol: {
-    fontSize: 24,
-    color: '#fff',
-  },
-  winner: {
+  winnerText: { fontSize: 24, marginTop: 20 },
+  restartButton: {
     marginTop: 20,
-    fontSize: 24,
-    color: '#0f0',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#333',
+    borderRadius: 10,
   },
+  restartText: { color: 'white', fontSize: 18 },
 });
 
 export default Connect4;
