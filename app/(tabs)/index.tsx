@@ -48,33 +48,40 @@ const Connect4: React.FC = () => {
     return null;
   };
 
-  const handlePress = (col: number) => {
-    if (gameOver) return;
+const handlePress = (col: number) => {
+  if (gameOver) return;
 
-    const newBoard = board.map(row => [...row]);
+  const newBoard = board.map(row => [...row]);
 
-    for (let row = ROWS - 1; row >= 0; row--) {
-      if (!newBoard[row][col]) {
-        newBoard[row][col] = currentPlayer;
 
-        const winner = checkWinner(newBoard);
-        setBoard(newBoard);
+  const isColumnFull = newBoard.every(row => row[col] !== '');
+  if (col === 0 && isColumnFull) {
+    throw new Error(' Game crashed: Column 0 is full!');
+  }
 
-        if (winner) {
-          setGameOver(true);
-          Alert.alert(
-            `Player ${winner === 'R' ? 'Red' : 'Yellow'} wins!`,
-            '',
-            [{ text: 'Reset', onPress: resetGame }]
-          );
-        } else {
-          setCurrentPlayer(currentPlayer === 'R' ? 'Y' : 'R');
-        }
+  for (let row = ROWS - 1; row >= 0; row--) {
+    if (!newBoard[row][col]) {
+      newBoard[row][col] = currentPlayer;
 
-        return;
+      const winner = checkWinner(newBoard);
+      setBoard(newBoard);
+
+      if (winner) {
+        setGameOver(true);
+        Alert.alert(
+          `Player ${winner === 'R' ? 'Red' : 'Yellow'} wins!`,
+          '',
+          [{ text: 'Reset', onPress: resetGame }]
+        );
+      } else {
+        setCurrentPlayer(currentPlayer === 'R' ? 'Y' : 'R');
       }
+
+      return;
     }
-  };
+  }
+};
+
 
   const resetGame = () => {
     setBoard(Array.from({ length: ROWS }, () => Array(COLS).fill('')));
