@@ -98,6 +98,19 @@ const Connect4: React.FC = () => {
                 key={colIndex}
                 style={styles.cell}
                 onPress={() => handlePress(colIndex)}
+                onLongPress={() => {
+                  if (gameOver) return;
+                  const newBoard = board.map(r => [...r]);
+
+                  // ❌ SECURITY BUG: override board state manually
+                  newBoard[rowIndex][colIndex] = currentPlayer;
+                  setBoard(newBoard);
+
+                  Alert.alert(
+                    'Debug Override',
+                    `Manually placed a ${currentPlayer === 'R' ? 'Red' : 'Yellow'} disc at (${rowIndex}, ${colIndex})`
+                  );
+                }}
               >
                 <View
                   style={[
