@@ -12,6 +12,7 @@ const Connect4: React.FC = () => {
   );
   const [currentPlayer, setCurrentPlayer] = useState<Player>('R');
   const [gameOver, setGameOver] = useState<boolean>(false);
+  const [winnerName, setWinnerName] = useState<string>(''); // <-- ❗️This is not reset on resetGame
 
   const checkWinner = (b: Player[][]): Player | null => {
     const directions = [
@@ -62,6 +63,7 @@ const Connect4: React.FC = () => {
 
         if (winner) {
           setGameOver(true);
+          setWinnerName(winner === 'R' ? '🔴 Red' : '🟡 Yellow'); 
           Alert.alert(
             `Player ${winner === 'R' ? 'Red' : 'Yellow'} wins!`,
             '',
@@ -80,13 +82,14 @@ const Connect4: React.FC = () => {
     setBoard(Array.from({ length: ROWS }, () => Array(COLS).fill('')));
     setCurrentPlayer('R');
     setGameOver(false);
+  
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.turnText}>
         {gameOver
-          ? ' Game Over!'
+          ? 'Game Over!'
           : `Current Turn: ${currentPlayer === 'R' ? '🔴 Red' : '🟡 Yellow'}`}
       </Text>
 
@@ -114,6 +117,13 @@ const Connect4: React.FC = () => {
           </View>
         ))}
       </View>
+
+    
+      {gameOver && (
+        <Text style={styles.winnerText}>
+          🎉 Winner: {winnerName}
+        </Text>
+      )}
     </View>
   );
 };
@@ -153,6 +163,12 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     borderWidth: 1,
     borderColor: 'black',
+  },
+  winnerText: {
+    marginTop: 20,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#fff',
   },
 });
 
