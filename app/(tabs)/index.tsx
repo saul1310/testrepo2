@@ -12,13 +12,14 @@ const Connect4: React.FC = () => {
   );
   const [currentPlayer, setCurrentPlayer] = useState<Player>('R');
   const [gameOver, setGameOver] = useState<boolean>(false);
+  const [lastMove, setLastMove] = useState<number | null>(null);
 
   const checkWinner = (b: Player[][]): Player | null => {
     const directions = [
-      [0, 1],   // right
-      [1, 0],   // down
-      [1, 1],   // diag right-down
-      [1, -1],  // diag left-down
+      [0, 1],
+      [1, 0],
+      [1, 1],
+      [1, -1],
     ];
 
     for (let r = 0; r < ROWS; r++) {
@@ -56,10 +57,10 @@ const Connect4: React.FC = () => {
     for (let row = ROWS - 1; row >= 0; row--) {
       if (!newBoard[row][col]) {
         newBoard[row][col] = currentPlayer;
-
-        const winner = checkWinner(newBoard);
         setBoard(newBoard);
-
+        setLastMove(col); 
+        
+        const winner = checkWinner(newBoard);
         if (winner) {
           setGameOver(true);
           Alert.alert(
@@ -76,17 +77,35 @@ const Connect4: React.FC = () => {
     }
   };
 
+  const handleUndo = () => {
+    if (lastMove === null || gameOver) return;
+
+    const newBoard = board.map(row => [...row]);
+
+    for (let row = 0; row < ROWS; row++) {
+      if (newBoard[row][lastMove]) {
+        newBoard[row][lastMove] = '';
+        break;
+      }
+    }
+
+    setBoard(newBoard);
+    setCurrentPlayer(currentPlayer === 'R' ? 'Y' : 'R');
+    setLastMove(null);
+  };
+
   const resetGame = () => {
     setBoard(Array.from({ length: ROWS }, () => Array(COLS).fill('')));
     setCurrentPlayer('R');
     setGameOver(false);
+    setLastMove(null);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.turnText}>
         {gameOver
-          ? ' Game Over!'
+          ? 'Game Over!'
           : `Current Turn: ${currentPlayer === 'R' ? '🔴 Red' : '🟡 Yellow'}`}
       </Text>
 
@@ -114,6 +133,11 @@ const Connect4: React.FC = () => {
           </View>
         ))}
       </View>
+
+      {/* ✅ Feature: Undo Button */}
+      <TouchableOpacity onPress={handleUndo} style={styles.undoButton}>
+        <Text style={styles.undoText}>↩️ Undo Last Move</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -153,6 +177,16 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     borderWidth: 1,
     borderColor: 'black',
+  },
+  undoButton: {
+    marginTop: 20,
+    backgroundColor: '#444',
+    padding: 10,
+    borderRadius: 10,
+  },
+  undoText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 
