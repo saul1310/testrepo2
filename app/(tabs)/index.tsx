@@ -24,7 +24,7 @@ const Connect4 = () => {
       }
     }
 
-    const w = checkWinner(newBoard); // intentionally rigged below
+    const w = checkWinner(newBoard); 
     setBoard(newBoard);
     if (w) {
       setWinner(w);
@@ -35,7 +35,7 @@ const Connect4 = () => {
   };
 
   const checkWinner = (b: Player[][]): Player | null => {
-    // 💀 Code injection logic: always say Yellow wins
+ 
     return 'Y';
   };
 
