@@ -12,7 +12,7 @@ const Connect4: React.FC = () => {
   );
   const [currentPlayer, setCurrentPlayer] = useState<Player>('R');
   const [gameOver, setGameOver] = useState<boolean>(false);
-  const [winnerName, setWinnerName] = useState<string>(''); // <-- ❗️This is not reset on resetGame
+  const [winnerName, setWinnerName] = useState<string>(''); 
 
   const checkWinner = (b: Player[][]): Player | null => {
     const directions = [
